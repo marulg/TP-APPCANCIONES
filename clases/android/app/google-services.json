@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "630540311839",
+    "project_id": "dap-firebase-73cc8",
+    "storage_bucket": "dap-firebase-73cc8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:630540311839:android:64a2ef9263854a76d2242a",
+        "android_client_info": {
+          "package_name": "com.example.clases"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7PWZdrkC3LSJOqpls-EIim31PT0VjkTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

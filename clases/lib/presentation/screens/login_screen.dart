@@ -1,48 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clases/entities/users.dart';
+import 'package:clases/domain/users.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:clases/presentation/providers/user_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  // controladores para leer lo q se escribe en los textfields
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController textoUsuario = TextEditingController();
   final TextEditingController textoContra = TextEditingController();
 
   bool ocultarContra = true;
-
-  // para mostrar mensajes abajo del botón 
   String resultado = "";
   Color colorRespuesta = Colors.white;
 
+  @override
+  void initState() {
+    super.initState();
+    ref.read(userProvider.notifier).getAllUsers();
+  }
+
   void enviar() {
-    // agarramos lo q se escribió y sacamos espacios
+    final users = ref.read(userProvider);
+
     String email = textoUsuario.text.trim();
     String pass = textoContra.text.trim();
 
     setState(() {
-      // si falta alguno de los campos, tira error
       if (email.isEmpty || pass.isEmpty) {
         resultado = "Por favor, complete ambos campos.";
         colorRespuesta = Colors.red;
         return;
       }
 
-      // buscamos el usuario por email (si no existe, devolvemos uno vacío)
-      User user = User("","","","");
-      for(var u in users){
-        if(u.email == email){
-          user = u;
-          break;
-        }
-      }
+      User? user = users.firstWhere(
+        (u) => u.email == email,
+        orElse: () => User("", "", "", ""),
+      );
 
-      // validamos el usuario y la contraseña
       if (user.email == "") {
         resultado = "Email no registrado.";
         colorRespuesta = Colors.red;
@@ -50,11 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
         resultado = "Contraseña incorrecta.";
         colorRespuesta = Colors.red;
       } else {
-        // si todo ok, mostramos bienvenida
-        resultado = "Bienvenido, ${user.name}!";
+        resultado = "Bienvenido!";
         colorRespuesta = Colors.green;
 
-        // esperamos 1 seg y vamos a la pantalla de home
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
             context.go('/home');
@@ -63,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

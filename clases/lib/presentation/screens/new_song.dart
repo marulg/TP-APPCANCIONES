@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:clases/domain/songs.dart';
+import 'package:clases/presentation/providers/song_provider.dart'; 
 import 'package:go_router/go_router.dart';
-import 'package:clases/entities/songs.dart';
-import 'package:clases/data/providers.dart'; 
 
 class NewSongScreen extends ConsumerWidget {
   NewSongScreen({super.key});
@@ -41,31 +41,27 @@ class NewSongScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = nameController.text.trim();
                 final artist = artistController.text.trim();
                 final album = albumController.text.trim();
                 final cover = coverController.text.trim();
                 
-                final songList = ref.watch(songsProvider);
+                final songList = ref.watch(songProvider);
 
-                final lastSong = songList[songList.length - 1];
-                int newId = lastSong.id + 1;
+                final lastSong = songList.isNotEmpty ? songList[songList.length - 1] : null;
+                int newId = lastSong != null ? lastSong.id + 1 : 1;
 
                 final newSong = Song(
-                  newId,
-                  name,
-                  artist,
-                  album,
-                  cover,
+                  id: newId,
+                  name: name,
+                  artist: artist,
+                  album: album,
+                  cover: cover,
                 );
 
-                ref.read(songsProvider.notifier).state = [
-                  ...songList,
-                  newSong,
-                ];
-
-                context.pop();
+                await ref.read(songProvider.notifier).addSong(newSong);
+                context.go('/home');
               },
               child: const Text("Guardar"),
             ),

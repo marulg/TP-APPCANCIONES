@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:clases/domain/songs.dart';
+import 'package:clases/presentation/providers/song_provider.dart'; 
 import 'package:go_router/go_router.dart';
-import 'package:clases/entities/songs.dart';
-import 'package:clases/data/providers.dart'; 
 
 class EditSongScreen extends ConsumerWidget {
   const EditSongScreen({super.key});
@@ -43,7 +43,7 @@ class EditSongScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = nameController.text.trim();
                 final artist = artistController.text.trim();
                 final album = albumController.text.trim();
@@ -51,29 +51,14 @@ class EditSongScreen extends ConsumerWidget {
                 final id = song.id;
 
                 final newSong = Song(
-                  id,
-                  name,
-                  artist,
-                  album,
-                  cover,
+                  id: id,
+                  name: name,
+                  artist: artist,
+                  album: album,
+                  cover: cover,
                 );
-
-                final songList = ref.watch(songsProvider);
-                final updatedList = [...songList];
-
-                int indexEditedSong = -1;
-                for (int i = 0; i < updatedList.length; i++) {
-                  if (updatedList[i].id == id) {
-                    indexEditedSong = i;
-                    break;
-                  }
-                }
-                updatedList[indexEditedSong] = newSong;
-
-                ref.read(songsProvider.notifier).state = updatedList;
-                
-                context.pop();
-                context.pop();
+                await ref.read(songProvider.notifier).updateSong(newSong);
+                context.go('/home');
               },
               child: const Text("Guardar"),
             ),

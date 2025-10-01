@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clases/data/providers.dart';
+import 'package:clases/presentation/providers/song_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final songList = ref.watch(songsProvider);
+    ref.read(songProvider.notifier).getAllSongs();
+    final songList = ref.watch(songProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de Canciones')),

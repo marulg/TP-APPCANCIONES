@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clases/data/providers.dart';
-import 'package:clases/entities/songs.dart';
+import 'package:clases/presentation/providers/song_provider.dart';
 import 'package:go_router/go_router.dart';
 
 class SongDetail extends ConsumerWidget {
@@ -9,11 +8,9 @@ class SongDetail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // agarramos la canción q se seleccionó de la lista
     final song = ref.watch(selectedSongProvider);
 
     if (song == null) {
-      // por si se llega a abrir sin haber elegido nada
       return const Scaffold(
         body: Center(child: Text('No se seleccionó ninguna canción')),
       );
@@ -35,7 +32,7 @@ class SongDetail extends ConsumerWidget {
                   height: 200,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.broken_image, size: 80), // por si falla la imagen
+                      const Icon(Icons.broken_image, size: 80),
                 ),
               ),
             ),
@@ -61,19 +58,9 @@ class SongDetail extends ConsumerWidget {
           const SizedBox(height: 10),
 
           FloatingActionButton(
-            onPressed: () {
-              final songList = ref.read(songsProvider);
-              List<Song> newSongList = [];
-              
-              int deletedSong = song.id;
-              
-              for (var eachSong in songList) {
-                if (eachSong.id != deletedSong) {
-                    newSongList.add(eachSong);
-                  }
-              }
-              ref.read(songsProvider.notifier).state = newSongList;
-              context.pop();
+            onPressed: () async {
+              await ref.read(songProvider.notifier).deleteSong(song.id);
+              context.go('/home');
             },
             child: const Icon(Icons.delete),
           ),
