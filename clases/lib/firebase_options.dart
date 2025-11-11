@@ -66,4 +66,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'dap-firebase-73cc8.firebasestorage.app',
     iosBundleId: 'com.example.clases',
   );
+
 }

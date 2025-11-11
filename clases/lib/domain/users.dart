@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-// por si se esta probando: mail: juan@gmail.com, contraseña: 1234
 
 class User {
+  String id; 
   final String email;
   final String password;
   final String name;
   final String address;
 
-  User(this.email, this.password, this.name, this.address);
+  User({
+    required this.id,
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.address,
+  });
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -23,12 +29,12 @@ class User {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
-
     return User(
-      data?['email'],
-      data?['password'],
-      data?['name'],
-      data?['address'],
+      id: snapshot.id, // 👈 tomamos el id del documento
+      email: data?['email'] ?? '',
+      password: data?['password'] ?? '',
+      name: data?['name'] ?? '',
+      address: data?['address'] ?? '',
     );
   }
 }

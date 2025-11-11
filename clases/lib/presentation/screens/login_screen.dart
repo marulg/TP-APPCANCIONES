@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:clases/domain/users.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clases/presentation/providers/user_provider.dart';
 
@@ -12,54 +11,116 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final TextEditingController textoUsuario = TextEditingController();
-  final TextEditingController textoContra = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool ocultarContra = true;
-  String resultado = "";
-  Color colorRespuesta = Colors.white;
 
-  @override
-  void initState() {
-    super.initState();
-    ref.read(userProvider.notifier).getAllUsers();
+  bool _camposVacios(String email, String password) {
+    return email.trim().isEmpty || password.trim().isEmpty;
   }
 
-  void enviar() {
-    final users = ref.read(userProvider);
+  void enviar() async {
+    FocusScope.of(context).unfocus();
 
-    String email = textoUsuario.text.trim();
-    String pass = textoContra.text.trim();
+    final email = emailController.text.trim();
+    final pass = passwordController.text.trim();
 
-    setState(() {
-      if (email.isEmpty || pass.isEmpty) {
-        resultado = "Por favor, complete ambos campos.";
-        colorRespuesta = Colors.red;
-        return;
-      }
-
-      User? user = users.firstWhere(
-        (u) => u.email == email,
-        orElse: () => User("", "", "", ""),
+    if (_camposVacios(email, pass)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Por favor, complete ambos campos."),
+          backgroundColor: Colors.red,
+        ),
       );
+      return;
+    }
 
-      if (user.email == "") {
-        resultado = "Email no registrado.";
-        colorRespuesta = Colors.red;
-      } else if (user.password != pass) {
-        resultado = "Contraseña incorrecta.";
-        colorRespuesta = Colors.red;
-      } else {
-        resultado = "Bienvenido!";
-        colorRespuesta = Colors.green;
+    final mensaje = await ref
+        .read(userProvider.notifier)
+        .signInWithEmailPassword(email, pass);
 
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            context.go('/home');
-          }
-        });
-      }
-    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        backgroundColor:
+            mensaje.contains("exitoso") ? Colors.green : Colors.red,
+      ),
+    );
+
+    if (mensaje.contains("exitoso") && mounted) {
+      Future.delayed(const Duration(seconds: 1), () {
+        context.go('/home');
+      });
+    }
+  }
+
+  void mostrarDialogoRegistro() {
+    final regEmail = TextEditingController();
+    final regPass = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Registrar nuevo usuario"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: regEmail,
+                decoration: const InputDecoration(labelText: "Email"),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: regPass,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: "Contraseña"),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancelar"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = regEmail.text.trim();
+                final pass = regPass.text.trim();
+
+                if (_camposVacios(email, pass)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Complete ambos campos"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                final mensaje = await ref
+                    .read(userProvider.notifier)
+                    .createWithPassword(email, pass);
+
+                if (!mounted) return;
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(mensaje),
+                    backgroundColor: mensaje.contains("exitosamente")
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                );
+              },
+              child: const Text("Registrar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -77,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             SizedBox(
               width: 200,
               child: TextField(
-                controller: textoUsuario,
+                controller: emailController,
                 decoration: const InputDecoration(labelText: "Email"),
               ),
             ),
@@ -85,7 +146,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             SizedBox(
               width: 200,
               child: TextField(
-                controller: textoContra,
+                controller: passwordController,
                 obscureText: ocultarContra,
                 decoration: InputDecoration(
                   labelText: "Contraseña",
@@ -103,11 +164,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            ElevatedButton(onPressed: enviar, child: const Text("LOG IN")),
+            ElevatedButton(onPressed: enviar, child: const Text("Log In")),
             const SizedBox(height: 20),
-            Text(
-              resultado,
-              style: TextStyle(fontSize: 18, color: colorRespuesta),
+            TextButton(
+              onPressed: mostrarDialogoRegistro,
+              child: const Text("Registrar"),
             ),
           ],
         ),
